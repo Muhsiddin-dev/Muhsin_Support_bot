@@ -11,26 +11,26 @@ function makeCmd(command) {
 
 // ── Менюи асосӣ ───────────────────────────────────────
 function buildMainMenu() {
-    return `🤖 **Muhsin Userbot**
+    return `🤖 **@Muhsin_Support_bot**
 
-Салом! Ин панели идоракунии бот аст.
-Аз зер интихоб кунед:
+Салом @lll_nazarov_lll ! Ин панели идоракунии бот аст📊.
+Аз поён интихоб кунед:
 
 ╔══════════════════════════╗
-║  **Саҳифаҳо** ║
+║  **Саҳифаҳо**            
 ╠══════════════════════════╣
-║  ${makeCmd("/settings")}  — ⚙️ Танзимот       ║
-║  ${makeCmd("/status")}    — 📊 Ҳолат          ║
-║  ${makeCmd("/help")}      — 📖 Роҳнамо        ║
-║  ${makeCmd("/close")}     — ❌ Пӯшидан        ║
-╚══════════════════════════╝`;
+║  ${makeCmd("/settings")}  — ⚙️ Танзимот       
+║  ${makeCmd("/status")}    — 📊 Ҳолат          
+║  ${makeCmd("/help")}      — 📖 Роҳнамо        
+║  ${makeCmd("/close")}     — ❌ Пӯшидан        
+╚══════════════════════════`;
 }
 
 // ── Танзимот ──────────────────────────────────────────
 function buildSettings() {
-    const ar = cfg.autoReply ? "🟢" : "🔴";
-    const typ = cfg.typingAnim ? "🟢" : "🔴";
-    const re = cfg.reactionEnabled ? "🟢" : "🔴";
+    const ar = cfg.autoReply ? "✅" : "❌";
+    const typ = cfg.typingAnim ? "✅" : "❌";
+    const re = cfg.reactionEnabled ? "✅" : "❌";
 
     const arCmd = cfg.autoReply ? "/off_ar" : "/on_ar";
     const typCmd = cfg.typingAnim ? "/off_typing" : "/on_typing";
@@ -76,7 +76,7 @@ ${makeCmd("/menu")} — 🏠 Бозгашт`;
 
 // ── Ҳолат ─────────────────────────────────────────────
 function buildStatus() {
-    const v = s => s ? "🟢 Фаъол" : "🔴 Хомӯш";
+    const v = s => s ? "✅ Фаъол" : "❌ Хомӯш";
     return `📊 **Ҳолати ҷорӣ**
 
 🔁 Автоҷавоб:     ${v(cfg.autoReply)}

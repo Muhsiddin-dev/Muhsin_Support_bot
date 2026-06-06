@@ -88,8 +88,8 @@ async function onIncoming(msg) {
     try {
         const sender = await msg.getSender();
         const name = sender?.firstName || "Дӯстам";
-        
-        const defaultText = "Салом, {name} 👋\n\nМан ҳозир банд хастам 🪫\nВақте онлайн шавам - ҳатман ҷавоб медиҳам 🍻";
+
+        const defaultText = "Салом, {name} 👋\nМан Боти Muhsin 🧑‍💻\n\Muhsin ҳозир банд мебошад 🪫\nВақте онлайн шавад - ҳатман ҷавоб медиҳад 🍻";
         const replyTextTemplate = cfg && cfg.replyText ? cfg.replyText : defaultText;
         const text = replyTextTemplate.replace(/\{name\}/g, name);
 
