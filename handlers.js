@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════
-//   handlers.js — нусхаи ниҳоӣ
+//    handlers.js — Ислоҳшуда (Санҷиши Паёмҳои Нахонда ва Офлайн)
 // ═══════════════════════════════════════════════════════
 const { client, showTyping, addReaction, typewriter, sleep, invoke, isOnline, goOffline } = require("./telegram");
 const { FloodWaitError } = require("telegram/errors");
@@ -10,7 +10,8 @@ const { handleCommand } = require("./menu");
 const BOT_REPLIED  = new Map();
 const lastOwnerMsg = new Map();
 
-const COOLDOWN_5H = 5 * 60 * 60 * 1000;
+// Тағйирёбандаи дуруст барои Cooldown (дар коди кӯҳна хатои COOLDOWN_10H буд)
+const COOLDOWN_10H = 10 * 60 * 60 * 1000; 
 
 const COMMANDS = new Set([
     "/menu", "/settings", "/status", "/help", "/close",
@@ -35,7 +36,7 @@ async function onOutgoing(msg) {
 
     if (peerId) {
         lastOwnerMsg.set(peerId, Date.now());
-        console.log(`✍️  Шумо ба ${peerId} навиштед — бот хомӯш`);
+        console.log(`✍️  Шумо ба ${peerId} навиштед — вақт сабт шуд.`);
     }
 }
 
@@ -46,6 +47,13 @@ async function onIncoming(msg) {
     if (!senderId) return;
 
     if (!cfg.autoReply) return;
+
+    // 🌟 МУҲОФИЗАТ АЗ LOOP: Агар худат ба боти худат нависӣ
+    const nameLower = (msg.sender?.firstName || "").toLowerCase();
+    if (nameLower.includes("muhsin") || nameLower.includes("support")) {
+        console.log(`🛡️ Бот паёми худиро пайдо кард. Ҷавоб дода намешавад.`);
+        return;
+    }
 
     // 1. Бот аст?
     try {
@@ -58,29 +66,43 @@ async function onIncoming(msg) {
 
     const now = Date.now();
 
-    // 2. 10 соат cooldown — бот кабл ҷавоб дод?
+    // 2. 10 соат cooldown — бот қабл ҷавоб дод?
     const lastBotReply = BOT_REPLIED.get(senderId) || 0;
     if (now - lastBotReply < COOLDOWN_10H) {
         const h = ((COOLDOWN_10H - (now - lastBotReply)) / 3600000).toFixed(1);
-        console.log(`⏳ Cooldown 10ч — ${h} соат қолд`);
+        console.log(`⏳ Cooldown 10ч — ${h} соат монд`);
         return;
     }
 
-    // 3. Соҳиб бо ин одам кабл гап задааст?
-    const ownerLast = lastOwnerMsg.get(senderId) || 0;
-    const silenceMs = cfg.silenceMs || 20 * 60 * 1000;
-    if (now - ownerLast < silenceMs) {
-        const m = Math.ceil((silenceMs - (now - ownerLast)) / 60000);
-        console.log(`🤫 Шумо бо у гап задед — ${m} дақ хомӯшӣ`);
-        return;
+    // 3. 🎯 САНҶИШИ НАВ: Оё паёмҳои нахондашуда (unread) аз ҷониби клиент ҳастанд?
+    try {
+        const dialogs = await client.getDialogs({});
+        const peerDialog = dialogs.find(d => d.id?.toString() === senderId);
+        
+        // Агар клиент паёми нав дода бошад ва ту онро НАДИДА бошӣ (unreadCount > 0)
+        if (peerDialog && peerDialog.unreadCount > 0) {
+            console.log(`📩 Клиент паёми нав дорад (${peerDialog.unreadCount} дона) ва шумо онро нахондаед.`);
+            // Дар ин ҳолат мо шарти "silenceMs"-ро дур мезанем, чунки ту паёмро нахондаӣ ва ҷавоб надодаӣ!
+        } else {
+            // Агар паёмҳоро аллакай хонда бошӣ, ҳамон шарти хомӯшии 20-дақиқагӣ кор мекунад
+            const ownerLast = lastOwnerMsg.get(senderId) || 0;
+            const silenceMs = cfg.silenceMs || 20 * 60 * 1000;
+            if (now - ownerLast < silenceMs) {
+                const m = Math.ceil((silenceMs - (now - ownerLast)) / 60000);
+                console.log(`🤫 Шумо бо у гап задед ва паёмҳоро хондаед — ${m} дақ хомӯшӣ`);
+                return;
+            }
+        }
+    } catch (err) {
+        console.log("Хатогӣ ҳангоми санҷиши паёмҳои нахонда:", err.message);
     }
 
-    // 4. 3 сония интизор → онлайн тафтиш
+    // 4. 3 сония интизор → Онлайн буданро тафтиш мекунем
     await sleep(3000);
 
     const online = await isOnline();
     if (online) {
-        console.log(`👤 Онлайн — бот хомӯш`);
+        console.log(`👤 Шумо онлайн ҳастед — бот хомӯш мемонад`);
         return;
     }
 
@@ -91,7 +113,7 @@ async function onIncoming(msg) {
         return;
     }
 
-    // 6. Ҷавоб
+    // 6. Ҷавоб бо таймрайтери тез
     try {
         const sender = await msg.getSender();
         const name   = sender?.firstName || "Дӯстам";
@@ -109,9 +131,10 @@ async function onIncoming(msg) {
 
         if (cfg.typingAnim) {
             await showTyping(msg.chatId);
-            await sleep(Math.min(800 + text.length * 10, 3000));
+            await sleep(500); // Интизории кӯтоҳ барои суръати баланд
         }
 
+        // Таймрайтери ултра-тези ту кор мекунад
         await typewriter(msg.chatId, msg.id, text);
 
         BOT_REPLIED.set(senderId, Date.now());
@@ -122,7 +145,7 @@ async function onIncoming(msg) {
 
     } catch (e) {
         if (e instanceof FloodWaitError) await sleep(e.seconds * 1000);
-        else console.log("Хатогӣ:", e.message);
+        else console.log("Хатогӣ дар фиристодан:", e.message);
     }
 }
 
