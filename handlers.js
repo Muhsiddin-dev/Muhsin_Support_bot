@@ -35,7 +35,15 @@ async function onOutgoing(msg) {
     }
 
     if (peerId) {
+        // Сабти вақти паёми охирини соҳиби бот
         lastOwnerMsg.set(peerId, Date.now());
+        
+        // 🔥 ХИТИ НАВ: Вақте шумо ба клиент ҷавоб додед, лимити 10-соатаи бот О ПУРРА ТОЗА (0) мешавад!
+        if (BOT_REPLIED.has(peerId)) {
+            BOT_REPLIED.delete(peerId);
+            console.log(`🔄 Лимити 10-соата барои ${peerId} тоза шуд, чунки шумо худатон ҷавоб додед.`);
+        }
+        
         console.log(`✍️  Шумо ба ${peerId} навиштед — вақт сабт шуд.`);
     }
 }
